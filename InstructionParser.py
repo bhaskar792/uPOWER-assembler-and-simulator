@@ -64,7 +64,7 @@ class InstructionParser:
 
         ##for converting to either binary or hex
 
-        self.labelsMap = labelsMap##current labelmap is an empty dict
+        self.labelsMap = labelsMap#taking labelmap from assembler which made proper labelmap
 
 
         self.instrLookup = InstructionLookup() #each type of instruction is assigned a integer (for now dont know what it represents)
@@ -95,12 +95,29 @@ class InstructionParser:
         operator, operands = instrObj.parseInstr(instr)     #operator=add and operand=$1 $2 $3
 
         if label:
-            operands = list(operands)
+            operands = list(operands)                       #converting operand to list
             if label not in self.labelsMap:
-                operands[-1] = None
+                operands[-1] = None                 
 
             operands[-1] = str(self.labelsMap[label])
             operands = tuple(operands)
+        
+        ###added by bhaskar     #if label is there at last then replace with address
+        operands=list(operands)
+        lastOfoperand=operands[-1]
+        lastOfoperand=lastOfoperand.split('$',1)
+        print(lastOfoperand)
+        if(len(lastOfoperand)>1):
+            pass
+        else:
+            label=str(operands[-1])
+            if  label not in labelsMap:
+                operands[-1] = None
+                print('not there')
+            else:
+                operands[-1] = str(labelsMap[label])
+        operands=tuple(operands)
+        ###added by bhaskar
 
         return instrType, operator, operands
 

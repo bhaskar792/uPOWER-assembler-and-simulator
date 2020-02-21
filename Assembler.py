@@ -15,17 +15,17 @@ class Assembler(object):
 		self.infilenames = infilenames
 		self.outfilename = outfilename
 
-	def stripComments(self, line):
+	def stripComments(self, line):				
 		if not line:
 			return ''
 
 		cleaned = line
 		if line.find('#') != -1:
-			cleaned = line[0:line.find('#')] # Get rid of anything after a comment.
+			cleaned = line[0:line.find('#')] # Get rid of anything after a comment(#).
 
 		return cleaned
 
-	def buildLabelsMap(self, lines):
+	def buildLabelsMap(self, lines):					#build label map
 		labelsMap = {}
 
 		for lineNo, line in enumerate(lines):
@@ -36,7 +36,7 @@ class Assembler(object):
 
 		return labelsMap
 
-	def mergeInputFiles(self):
+	def mergeInputFiles(self):						#given list of all input lines
 		outlines = []
 
 		for filename in self.infilenames:
@@ -45,18 +45,18 @@ class Assembler(object):
 
 			f.close()
 
-		return outlines
+		return outlines				#return all the lines of assembly file
 
 	def AssemblyToHex(self):
 		'''given an ascii assembly file , read it in line by line and convert each line of assembly to machine code
 		then save that machinecode to an outputfile'''
-		inlines = self.mergeInputFiles()
+		inlines = self.mergeInputFiles()		#get all the lines from input in list
 		outlines = []
 
-		lines = map(lambda line: self.stripComments(line.rstrip()), inlines)  #get rid of \n whitespace at end of line
-		lines = filter(lambda line: line, lines)
+		lines = map(lambda line: self.stripComments(line.rstrip()), inlines)  #get rid of \n whitespace at end of line #return either proper lines or empty item
+		lines = filter(lambda line: line, lines)			#remove empty items
 
-		labelsMap = self.buildLabelsMap(lines)
+		labelsMap = self.buildLabelsMap(lines)				#build labelsmap like {'bro': 0, 'there': 2, 'hey': 3} and line numbers are correct
 		parser = InstructionParser(labelsMap=labelsMap)
 
 		outlines = map(lambda line: parser.convert(line, format='hex'), lines)
