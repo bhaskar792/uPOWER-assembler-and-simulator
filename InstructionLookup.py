@@ -1,32 +1,56 @@
 class InstructionLookup:
     def __init__(self):
         self.opcodeDict = {
-        	'R-TYPE': {
+        	'XO-TYPE': {
         		'add': 0,
-        		'and': 1,
-        		'or': 2,
-        		'sub': 3,
-        		'sgt': 14,
-        		'slt': 13,
-                'mult': 17
+        		'subf': 1
         	},
-        	'I-TYPE': {
-        		'addi': 4,
-        		'andi': 5,
-        		'ori': 6,
-        		'subi': 7,
-        		'lw': 10,
-        		'sw': 11,
-        		'beq': 9,
-        		'bne': 13,
-        		'blt': 14,
-        		'bgt': 15
-        	},
-        	'J-TYPE': {
-        		'j': 16,
-        		'jal': 18,
-        		'jr': 19
-        	}
+            'D-TYPE': {
+                'addi': 2,
+                'addis': 3,
+                'andi': 4,
+                'ori': 5,
+                'xori': 6,
+                'lwz': 7,
+                'stw': 8,
+                'stwu': 9,
+                'lhz': 10,
+                'lha': 11,
+                'sth': 12,
+                'lbz': 13,
+                'stb': 14,
+                'cmpi': 15
+            },
+            'X-TYPE':{
+                'and': 16,
+                'or': 17,
+                'nand': 18,
+                'extsw': 19,
+                'xor': 20,
+                'sld': 21,
+                'srd': 22,
+                'srad': 23,
+                'cmp': 24
+            },
+        	'DS-TYPE': {
+                'ld': 25,
+                'std': 26
+            },
+            'XS-TYPE': {
+                'sradi': 27
+            },
+            'B-TYPE': {
+                'bc': 28,
+                'bca': 29
+            },
+            'I-TYPE': {
+                'b': 30,
+                'ba': 31,
+                'bl':32
+            },
+            'SC-TYPE': {
+                'sc': 32
+            }
         }
 
     def type(self, operator):
@@ -46,4 +70,3 @@ class InstructionLookup:
 look=InstructionLookup()
 print(look.type('add'))
 print(look.opcode('add'))
-

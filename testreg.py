@@ -4,11 +4,12 @@ import re
 from Utils import Utils
 outlines = []
 print('#########################################')
-XOTypeRegex=r'(add)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)|(subf)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)'
-instrreg=re.compile(XOTypeRegex)
-instr='add $1 $2 $3'
+BTypeRegex=r'(sc)'
+instrreg=re.compile(BTypeRegex)
+instr='sc'
 match=instrreg.match(instr)
-
+if match:
+    print('matched')
 
 with open(infilename) as f:
     outlines += f.readlines()
@@ -63,7 +64,8 @@ print(instrlines[0])
 
 print(labelsMap)
 parser=InstructionParser(labelsMap=labelsMap)
-instr='j hey'
+instr='sc'
+#instr='j 3'
 
 #outlines=map(lambda line: parser.convert(line), instrlines)
 #print(list(outlines))

@@ -19,54 +19,101 @@ class BaseInstruction(object):
 
         return operator, operands
 
-class RTypeInstruction(BaseInstruction):    
+class XOTypeInstruction(BaseInstruction):    
     def __init__(self):
-        RTypeRegex = r'(add)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)|(subf)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)'            #whenever this class is called it calls base instruction and send instruction regex
+        XOTypeRegex = r'(add)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)|(subf)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)'            #whenever this class is called it calls base instruction and send instruction regex
 
-        super(RTypeInstruction, self).__init__(RTypeRegex)
+        super(XOTypeInstruction, self).__init__(XOTypeRegex)
 
     def parseInstr(self, instr):                                        #when this function is called with instruction it calls baseInstruction to parse
-        return super(RTypeInstruction, self).parseInstr(instr)
+        return super(XOTypeInstruction, self).parseInstr(instr)
 
-class ITypeInstruction(BaseInstruction):
+class DTypeInstruction(BaseInstruction):
     def __init__(self):
-        ITypeRegex = r'(\w+)\s+(\$\d+)\s?,?\s+(\$\d+)\s?,?\s+(\d+)|(\w+)\s+(\$\d+)\s?,?\s+(-?\d+)\((\$\d+)\)'
-        super(ITypeInstruction, self).__init__(ITypeRegex)
+        DTypeRegex = r'(addi)\s+(\$\d+)\s+(\$\d+)\s+(\d+)|(addis)\s+(\$\d+)\s+(\$\d+)\s+(\d+)|(andi)\s+(\$\d+)\s+(\$\d+)\s+(\d+)|(ori)\s+(\$\d+)\s+(\$\d+)\s+(\d+)|(xori)\s+(\$\d+)\s+(\$\d+)\s+(\d+)|(lwz)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(swz)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(stwz)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(lhz)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(lha)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(sth)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(lbz)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(stb)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)'
+        super(DTypeInstruction, self).__init__(DTypeRegex)
 
     def parseInstr(self, instr):
-        operator, operands = super(ITypeInstruction, self).parseInstr(instr)
+        operator, operands = super(DTypeInstruction, self).parseInstr(instr)
         if operator == 'sw' or operator == 'lw':
             return operator, (operands[0], operands[2], operands[1])
 
         return operator, operands
 
-class JTypeInstruction(BaseInstruction):
+class XTypeInstruction(BaseInstruction):
     def __init__(self):
-        JTypeRegex = r'(\w+)\s+(\w+)'
-        super(JTypeInstruction, self).__init__(JTypeRegex)
+        XTypeRegex = r'(and)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)|(nand)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)|(extsw)\s+(\$\d+)\s+(\$\d+)|(or)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)|(xor)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)|(sld)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)|(srd)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)|(srad)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)'
+        super(XTypeInstruction, self).__init__(XTypeRegex)
 
     def parseInstr(self, instr):
-        return super(JTypeInstruction, self).parseInstr(instr)
+        return super(XTypeInstruction, self).parseInstr(instr)
+
+class DSTypeInstruction(BaseInstruction):
+    def __init__(self):
+        DSTypeRegex = r'(ld)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(std)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)'
+        super(DSTypeInstruction, self).__init__(DSTypeRegex)
+
+    def parseInstr(self, instr):
+        return super(DSTypeInstruction, self).parseInstr(instr)
+
+### for DS operand return for ld $1 6($3) will be ['$1', '6', '$3']
+
+
+class XSTypeInstruction(BaseInstruction):
+    def __init__(self):
+        XSTypeRegex = r'(sradi)\s+(\$\d+)\s+(\$\d+)\s+(\d+)'           #whenever this class is called it calls base instruction and send instruction regex
+
+        super(XSTypeInstruction, self).__init__(XSTypeRegex)
+
+    def parseInstr(self, instr):                                        #when this function is called with instruction it calls baseInstruction to parse
+        return super(XSTypeInstruction, self).parseInstr(instr)
+
+class BTypeInstruction(BaseInstruction):
+    def __init__(self):
+        BTypeRegex =  r'(bc)\s+(\$\d+)\s+(\$\d+)\s+(\w+)|(bca)\s+(\$\d+)\s+(\$\d+)\s+(\w+)'          #whenever this class is called it calls base instruction and send instruction regex
+
+        super(BTypeInstruction, self).__init__(BTypeRegex)
+
+    def parseInstr(self, instr):                                        #when this function is called with instruction it calls baseInstruction to parse
+        return super(BTypeInstruction, self).parseInstr(instr)
+
+
+class ITypeInstruction(BaseInstruction):
+    def __init__(self):
+        ITypeRegex = r'(bl)\s+(\w+)|(ba)\s+(\w+)|(li)\s+(\w+)'          #whenever this class is called it calls base instruction and send instruction regex
+
+        super(ITypeInstruction, self).__init__(ITypeRegex)
+
+    def parseInstr(self, instr):                                        #when this function is called with instruction it calls baseInstruction to parse
+        return super(ITypeInstruction, self).parseInstr(instr)
+
+class SCTypeInstruction(BaseInstruction):
+    def __init__(self):
+        SCTypeRegex = r'(sc)'           #whenever this class is called it calls base instruction and send instruction regex
+
+        super(SCTypeInstruction, self).__init__(SCTypeRegex)
+
+    def parseInstr(self, instr):                                        #when this function is called with instruction it calls baseInstruction to parse
+        return super(SCTypeInstruction, self).parseInstr(instr)
+
 
 class InstructionParser:
     def __init__(self, labelsMap={}):
         self.instrObjMap = {
-            'R-TYPE': RTypeInstruction,
+            'XO-TYPE': XOTypeInstruction,
+            'D-TYPE': DTypeInstruction,
+            'X-TYPE': XTypeInstruction,
+            'DS-TYPE': DSTypeInstruction,
+            'XS-TYPE': XSTypeInstruction,
+            'B-TYPE': BTypeInstruction,
             'I-TYPE': ITypeInstruction,
-            'J-TYPE': JTypeInstruction
+            'SC-TYPE': SCTypeInstruction
         }
 
         ##gives which type of instruction it is
 
-        self.formatFuncMap = {
-            'binary': lambda s, n: Utils.int2bs(s, n),
-            'hex': lambda s, n: Utils.bs2hex(Utils.int2bs(s, n))
-        }
-
-        ##for converting to either binary or hex
 
         self.labelsMap = labelsMap#taking labelmap from assembler which made proper labelmap
-
 
         self.instrLookup = InstructionLookup() #each type of instruction is assigned a integer (for now dont know what it represents)
         self.instrObj = None # used to define null object
@@ -108,20 +155,22 @@ class InstructionParser:
         
         ###added by bhaskar     #if label is there at last then replace with address
         #operands=list(operands)
-        lastOfoperand=operands[-1]
-        print(type(operands))
-        lastOfoperand=lastOfoperand.split('$',1)
-        #print(lastOfoperand)
-        if(len(lastOfoperand)>1):
-            pass
-        else:
-            label=str(operands[-1])
-            if  label not in self.labelsMap:
-                operands[-1] = None
-                print('not there')
+        if instrType=='I-TYPE' or instrType=='B-TYPE':
+            lastOfoperand=operands[-1]
+            #print(type(operands))
+            #lastOfoperand=lastOfoperand.split('$',1)
+            #print(lastOfoperand)
+            #if(len(lastOfoperand)>1):
+            if(lastOfoperand.isdigit()):
+                pass
             else:
-                operands[-1] = str(self.labelsMap[label])
-        operands=list(operands)
+                label=str(operands[-1])
+                if  label not in self.labelsMap:
+                    operands[-1] = None
+                    print('not there')
+                else:
+                    operands[-1] = str(self.labelsMap[label])
+            operands=list(operands)
         ###added by bhaskar
 
         return instrType, operator, operands
