@@ -53,11 +53,20 @@ class Assembler(object):
 		inlines = self.mergeInputFiles()		#get all the lines from input in list
 		outlines = []
 
-		lines = map(lambda line: self.stripComments(line.rstrip()), inlines)  #get rid of \n whitespace at end of line #return either proper lines or empty item
-		lines = filter(lambda line: line, lines)			#remove empty items
-
+		lines = list(map(lambda line: self.stripComments(line.rstrip()), inlines))  #get rid of \n whitespace at end of line #return either proper lines or empty item
+					
+		lines=list(filter(None,lines))
 		labelsMap = self.buildLabelsMap(lines)				#build labelsmap like {'bro': 0, 'there': 2, 'hey': 3} and line numbers are correct
-		parser = InstructionParser(labelsMap=labelsMap)
+		parser = InstructionParser(labelsMap=labelsMap)		#IMP while writing file keep track of label name so first put all label name in file then put binary
+
+		instrlines=[]
+		for i in lines:
+    		 stripped=i.split(':',1)
+    		 if(len(stripped)>1):
+        			i=''
+    				instrlines.append(i)
+    
+		instrlines = filter(None, instrlines)
 
 		outlines = map(lambda line: parser.convert(line, format='hex'), lines)
 
@@ -69,8 +78,8 @@ class Assembler(object):
 		of.close()
 
 if __name__ == "__main__":
-	print 'Number of arguments:', len(sys.argv), 'arguments.'
-	print 'Argument List:', str(sys.argv)
+	print('Number of arguments:', len(sys.argv), 'arguments.')
+	print('Argument List:', str(sys.argv))
 
 	# try:
 	# 	opts, args = getopt.getopt(sys.argv[1:], "hi:o:", ["ifile=","ofile="])

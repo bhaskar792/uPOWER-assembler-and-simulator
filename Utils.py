@@ -33,3 +33,6 @@ class Utils(object):
             Example Output: "a08f" """
 
         return(hex(int(v,2))[2:])
+x=Utils()
+a=x.int2bs('8',8)
+print(a)

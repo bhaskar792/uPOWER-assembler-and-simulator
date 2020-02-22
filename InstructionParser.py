@@ -12,8 +12,8 @@ class BaseInstruction(object):
         if not match:
             return '', ()
                                                                      #if matched then
-    #    groups = filter(lambda x: x is not None, match.groups())      #not working due to difference between python 2 and 3
-        groups  =  match.groups()                                       #groups = ('add', '$1', '$2', '$3')
+        groups = filter(lambda x: x is not None, match.groups())      #to remove none from the tuples
+        groups  =  tuple(groups)                                       #groups = ('add', '$1', '$2', '$3')
         operator = groups[0]
         operands = groups[1:]
 
@@ -21,7 +21,8 @@ class BaseInstruction(object):
 
 class RTypeInstruction(BaseInstruction):    
     def __init__(self):
-        RTypeRegex = r'(\w+)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)'             #whenever this class is called it calls base instruction and send instruction regex
+        RTypeRegex = r'(add)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)|(subf)\s+(\$\d+)\s+(\$\d+)\s+(\$\d+)'            #whenever this class is called it calls base instruction and send instruction regex
+
         super(RTypeInstruction, self).__init__(RTypeRegex)
 
     def parseInstr(self, instr):                                        #when this function is called with instruction it calls baseInstruction to parse
@@ -88,12 +89,14 @@ class InstructionParser:
 
         operator = instr.split(' ')[0]         #splitting by space operator=add in add $1 $2 $3
         instrType = self.instrLookup.type(operator)     #return a type(R-TYPE) corresponding to particular instruction
+       # return instrType,operator,instr.split(' ')[1:]
         if not instrType:                               #if intruction not available
             return '', '', None 
 
         instrObj = self.instrObjMap[instrType]()           #instrObj became an object of RTypeInstruction(class above)
+     
         operator, operands = instrObj.parseInstr(instr)     #operator=add and operand=$1 $2 $3
-
+        return instrType,operator,operands
         if label:
             operands = list(operands)                       #converting operand to list
             if label not in self.labelsMap:
@@ -105,44 +108,52 @@ class InstructionParser:
         ###added by bhaskar     #if label is there at last then replace with address
         operands=list(operands)
         lastOfoperand=operands[-1]
+        print(type(operands))
         lastOfoperand=lastOfoperand.split('$',1)
-        print(lastOfoperand)
+        #print(lastOfoperand)
         if(len(lastOfoperand)>1):
             pass
         else:
             label=str(operands[-1])
-            if  label not in labelsMap:
+            if  label not in self.labelsMap:
                 operands[-1] = None
                 print('not there')
             else:
-                operands[-1] = str(labelsMap[label])
+                operands[-1] = str(self.labelsMap[label])
         operands=tuple(operands)
         ###added by bhaskar
 
         return instrType, operator, operands
 
-    def convert(self, instr, format='binary', formatFunc=None, instrFieldSizes=(6, 4, 4, 4)):
+    def convert(self, instr):
         if not instr:
             return ''
-
-        if formatFunc is None:
-            formatFunc = self.formatFuncMap[format]
-
+        ###added by bhaskar
         instrType, operator, operands = self.parse(instr)
         if not operator:
             return ''
-
-        opcode = self.instrLookup.opcode(operator)
-        convertedOpcode = formatFunc(opcode, instrFieldSizes[0])
-        operands = map(lambda op: op.strip('$'), operands)
-        convertedOperands = map(lambda (i, s): formatFunc(s, instrFieldSizes[i + 1]), enumerate(operands))
-
-        convertedOutput = convertedOpcode + ''.join(convertedOperands)
-        return convertedOutput
-
+        operand=[]
+        if (operator == 'add'):
+            opcode = '001110'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            for i in operands:
+                i = i.split('$')[1]
+                operand.append(i)
+            
+            rt = u.int2bs(operand[0], 5)
+            ra = u.int2bs(operand[1], 5)
+            rb = u.int2bs(operand[2], 5)
+            binary = binary + rt + ra + rb
+            return(binary)
+        ###added by bhaskar
+'''
 if __name__ == '__main__':
     # Test
     ip = InstructionParser()
     print ip.convert('add $6 $2 $4')
     print ip.convert('addi $2 $0 2', format='binary')
     print hex(int(ip.convert('addi $2 $0 2', format='binary'), 2))
+'''
+
