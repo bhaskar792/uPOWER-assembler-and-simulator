@@ -32,12 +32,14 @@ def stripComments(line):
 
 def buildLabelsMap(lines):
     labelsMap = {}
-
+    count=0
     for lineNo, line in enumerate(lines):
         split = line.split(':', 1)
         if len(split) > 1:
+
             label = split[0]
-            labelsMap[label] = lineNo
+            labelsMap[label] = lineNo-count
+            count=count+1
 
     return labelsMap
 print('**********************************')
@@ -60,15 +62,23 @@ for i in lines:
 
 instrlines = list(filter(None, instrlines))
 print(list(instrlines))
-print(instrlines[0])
+print(instrlines)
 
 print(labelsMap)
 parser=InstructionParser(labelsMap=labelsMap)
 instr='sc'
 #instr='j 3'
 
-#outlines=map(lambda line: parser.convert(line), instrlines)
-#print(list(outlines))
+outlines=list(map(lambda line: parser.convert(line), instrlines))
+print(outlines)
+outfilename='out.txt'
+with open(outfilename, 'w') as of:
+    of.write('v2.0 raw\n')
+    for outline in outlines:
+        of.write(outline)
+        of.write("\n")
+of.close()
+
 print('###########################')
 type,operator,operands=parser.parse(instr)
 print(type)
