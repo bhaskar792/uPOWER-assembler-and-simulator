@@ -96,7 +96,8 @@ class InstructionParser:
         instrObj = self.instrObjMap[instrType]()           #instrObj became an object of RTypeInstruction(class above)
      
         operator, operands = instrObj.parseInstr(instr)     #operator=add and operand=$1 $2 $3
-        return instrType,operator,operands
+        operands=list(filter(None, operands))
+        #return instrType,operator,operands
         if label:
             operands = list(operands)                       #converting operand to list
             if label not in self.labelsMap:
@@ -106,7 +107,7 @@ class InstructionParser:
             operands = tuple(operands)
         
         ###added by bhaskar     #if label is there at last then replace with address
-        operands=list(operands)
+        #operands=list(operands)
         lastOfoperand=operands[-1]
         print(type(operands))
         lastOfoperand=lastOfoperand.split('$',1)
@@ -120,7 +121,7 @@ class InstructionParser:
                 print('not there')
             else:
                 operands[-1] = str(self.labelsMap[label])
-        operands=tuple(operands)
+        operands=list(operands)
         ###added by bhaskar
 
         return instrType, operator, operands
@@ -156,4 +157,3 @@ if __name__ == '__main__':
     print ip.convert('addi $2 $0 2', format='binary')
     print hex(int(ip.convert('addi $2 $0 2', format='binary'), 2))
 '''
-

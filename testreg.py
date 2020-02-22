@@ -57,42 +57,24 @@ for i in lines:
         i=''
     instrlines.append(i)
 
-lines = filter(None, instrlines)
-print(list(lines))
-
+instrlines = list(filter(None, instrlines))
+print(list(instrlines))
+print(instrlines[0])
 
 print(labelsMap)
 parser=InstructionParser(labelsMap=labelsMap)
-instr='add $1 $2 $3'
-outlines=map(lambda line: parser.convert(line), lines)
-print(list(outlines))
+instr='j hey'
+
+#outlines=map(lambda line: parser.convert(line), instrlines)
+#print(list(outlines))
 print('###########################')
 type,operator,operands=parser.parse(instr)
 print(type)
 print(operator)
 print(operands)
-operand=[]
-if(operator=='add'):
-    opcode='001110'
-    binary=opcode
-    operands=list(operands)
-    for i in operands:
-        i=i.split('$')[1]
-        operand.append(i)
-    rt=operand[0]
-    ra=operand[1]
-    rb=operand[2]
-    u=Utils()
-    rt = u.int2bs(rt, 5)
-    ra = u.int2bs(ra, 5)
-    rb = u.int2bs(rb, 5)
-    binary=binary+rt+ra+rb
 
-    print(binary)
 
-split = instr.split(':', 1)
 
-print('################################')
 #lines = list(filter(None, lines))
 #print(str(lines))
 
