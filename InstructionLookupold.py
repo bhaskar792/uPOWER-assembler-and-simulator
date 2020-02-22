@@ -43,7 +43,4 @@ class InstructionLookup:
 
         return self.opcodeDict[k][operator]
 
-look=InstructionLookup()
-print(look.type('add'))
-print(look.opcode('add'))
 
