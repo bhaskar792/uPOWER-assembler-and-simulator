@@ -1,3 +1,4 @@
+
 infilename='test.txt'
 from InstructionParser import  InstructionParser
 import re
@@ -30,20 +31,26 @@ def stripComments(line):
         cleaned = line[0:line.find('#')] # Get rid of anything after a comment.
 
     return cleaned
+def buildtextaddressmap(lines):
+    textmap={}
+    for (lineNo,i) in enumerate(lines):
+        if (len(list(filter(None, i.split(':')))) > 1):
+            textmap[list(filter(None, i.split(':')))[0]] = lineNo
 
-def buildLabelsMap(lines):
+    return textmap
+
+def buildLabelsMap(lines,linenum):
     labelsMap = {}
     count=0
-    for lineNo, line in enumerate(lines):
+    for (lineNo, line) in enumerate(lines):
         split = line.split(':', 1)
         if len(split) > 1:
 
             label = split[0]
-            labelsMap[label] = lineNo-count
-            count=count+1
-
+            labelsMap[label] = lineNo - count  # because everytime at place of label line is removed to everytime decrease by 1
+            if (len(list(filter(None, split))) == 1):
+                count=count+1
     return labelsMap
-
 
 print('**********************************')
 #lines = list(map(lambda line: stripComments(line.rstrip()), inlines))
@@ -51,11 +58,15 @@ lines = list(map(lambda line: stripComments(line.rstrip()), inlines))  #get rid 
 
 print(lines)
 lines=list(filter(None,lines))
+textAddressMap=buildtextaddressmap(lines)
 
-labelsMap = buildLabelsMap(lines)
+labelsMap = buildLabelsMap(lines,len(textAddressMap))
+print(labelsMap)
+print('this one')
+labelsMap.update(textAddressMap)
 
 
-
+print(labelsMap)
 
 
 #text = list(filter(None,lines[0].split(':')))
@@ -81,11 +92,11 @@ print(labelsMap)
 print(labelsMap)
 parser=InstructionParser(labelsMap=labelsMap)
 #instr='sc'
-instr='add $1 $2 $3'
+instr='sradi $1 $2 3'
 
 outlines=list(map(lambda line: parser.convert(line), instrlines))
 print(outlines)
-
+'''
 outfilename='out.txt'
 with open(outfilename, 'w') as of:
     of.write('v2.0 raw\n')
@@ -93,7 +104,7 @@ with open(outfilename, 'w') as of:
         of.write(outline)
         of.write("\n")
 of.close()
-
+'''
 print('###########################')
 type,operator,operands=parser.parse(instr)
 print(type)
@@ -129,7 +140,7 @@ def buildtextmap(lines):
     textmap={}
     for i in lines:
         if (len(list(filter(None, i.split(':')))) > 1):
-            textmap[list(filter(None, i.split(':')))[0]] = list(filter(None, i.split(':')))[1].strip()
+            textmap[list(filter(None, i.split(':')))[0]] = bin(int(list(filter(None, i.split(':')))[1].strip(),16))[2:]
 
     return textmap
 
@@ -147,3 +158,6 @@ fo.close()
 print(len(textmap))
 labelsMap.update(textmap)
 print(labelsMap)
+
+
+print(bin(int(textmap['bro'],16))[2:])

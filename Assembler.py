@@ -39,15 +39,18 @@ class Assembler(object):
 
         return outlines  # return all the lines of assembly file
 
-    def buildLabelsMap(self, lines,count):
+    def buildLabelsMap(self,lines):
         labelsMap = {}
-
+        count = 0
         for (lineNo, line) in enumerate(lines):
             split = line.split(':', 1)
             if len(split) > 1:
-                label = split[0]
-                labelsMap[label] = lineNo - count  # because everytime at place of label line is removed to everytime decrease by 1
 
+                label = split[0]
+                labelsMap[
+                    label] = lineNo - count  # because everytime at place of label line is removed to everytime decrease by 1
+                if (len(list(filter(None, split))) == 1):
+                    count = count + 1
         return labelsMap
 
     def mergeInputFiles(self):  # given list of all input lines
@@ -65,9 +68,11 @@ class Assembler(object):
         textmap = {}
         for i in lines:
             if (len(list(filter(None, i.split(':')))) > 1):
-                textmap[list(filter(None, i.split(':')))[0]] = list(filter(None, i.split(':')))[1].strip()
+                textmap[list(filter(None, i.split(':')))[0]] = bin(int(list(filter(None, i.split(':')))[1].strip(),16))[2:]
 
         return textmap
+
+
 
     def AssemblyToHex(self):
         '''given an ascii assembly file , read it in line by line and convert each line of assembly to machine code
@@ -81,9 +86,8 @@ class Assembler(object):
 
         lines = list(filter(None, lines))
         textmap = self.buildtextmap(lines)  # for text section
-        labelsMap = self.buildLabelsMap(lines,len(textmap)-1)  # build labelsmap like {'bro': 0, 'there': 2, 'hey': 3} and line numbers are correct
+        labelsMap = self.buildLabelsMap(lines)  # build labelsmap like {'bro': 0, 'there': 2, 'hey': 3} and line numbers are correct
 
-        labelsMap.update(textmap)
         parser = InstructionParser(labelsMap=labelsMap)
         
         instrlines = []
