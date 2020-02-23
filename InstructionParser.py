@@ -30,7 +30,7 @@ class XOTypeInstruction(BaseInstruction):
 
 class DTypeInstruction(BaseInstruction):
     def __init__(self):
-        DTypeRegex = r'(addi)\s+(\$\d+)\s+(\$\d+)\s+(\d+)|(addis)\s+(\$\d+)\s+(\$\d+)\s+(\d+)|(andi)\s+(\$\d+)\s+(\$\d+)\s+(\d+)|(ori)\s+(\$\d+)\s+(\$\d+)\s+(\d+)|(xori)\s+(\$\d+)\s+(\$\d+)\s+(\d+)|(lwz)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(swz)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(stwz)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(lhz)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(lha)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(sth)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(lbz)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(stb)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)'
+        DTypeRegex = r'(addi)\s+(\$\d+)\s+(\$\d+)\s+(\d+)|(addis)\s+(\$\d+)\s+(\$\d+)\s+(\d+)|(andi)\s+(\$\d+)\s+(\$\d+)\s+(\d+)|(ori)\s+(\$\d+)\s+(\$\d+)\s+(\d+)|(xori)\s+(\$\d+)\s+(\$\d+)\s+(\d+)|(lwz)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(stw)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(stwu)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(lhz)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(lha)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(sth)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(lbz)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)|(stb)\s+(\$\d+)\s+(\d+)+\(+(\$\d+)+\)'
         super(DTypeInstruction, self).__init__(DTypeRegex)
 
     def parseInstr(self, instr):
@@ -80,7 +80,7 @@ class BTypeInstruction(BaseInstruction):
 
 class ITypeInstruction(BaseInstruction):
     def __init__(self):
-        ITypeRegex = r'(bl)\s+(\w+)|(ba)\s+(\w+)|(li)\s+(\w+)'          #whenever this class is called it calls base instruction and send instruction regex
+        ITypeRegex = r'(bl)\s+(\w+)|(ba)\s+(\w+)|(b)\s+(\w+)'          #whenever this class is called it calls base instruction and send instruction regex
 
         super(ITypeInstruction, self).__init__(ITypeRegex)
 
@@ -96,6 +96,16 @@ class SCTypeInstruction(BaseInstruction):
     def parseInstr(self, instr):                                        #when this function is called with instruction it calls baseInstruction to parse
         return super(SCTypeInstruction, self).parseInstr(instr)
 
+class LDATATypeInstruction(BaseInstruction):
+    def __init__(self):
+        LDATATypeRegex = r'(ldata)\s+(\$\d+)\s+(\w+)'         #whenever this class is called it calls base instruction and send instruction regex
+
+        super(LDATATypeInstruction, self).__init__(LDATATypeRegex)
+
+    def parseInstr(self, instr):                                        #when this function is called with instruction it calls baseInstruction to parse
+        return super(LDATATypeInstruction, self).parseInstr(instr)
+
+
 
 class InstructionParser:
     def __init__(self, labelsMap={}):
@@ -107,7 +117,8 @@ class InstructionParser:
             'XS-TYPE': XSTypeInstruction,
             'B-TYPE': BTypeInstruction,
             'I-TYPE': ITypeInstruction,
-            'SC-TYPE': SCTypeInstruction
+            'SC-TYPE': SCTypeInstruction,
+            'LDATA-TYPE': LDATATypeInstruction
         }
 
         ##gives which type of instruction it is
@@ -135,15 +146,18 @@ class InstructionParser:
             return '', '', None
 
         operator = instr.split(' ')[0]         #splitting by space operator=add in add $1 $2 $3
+
         instrType = self.instrLookup.type(operator)     #return a type(R-TYPE) corresponding to particular instruction
+
        # return instrType,operator,instr.split(' ')[1:]
         if not instrType:                               #if intruction not available
             return '', '', None 
 
         instrObj = self.instrObjMap[instrType]()           #instrObj became an object of RTypeInstruction(class above)
-     
+
         operator, operands = instrObj.parseInstr(instr)     #operator=add and operand=$1 $2 $3
         operands=list(filter(None, operands))
+
         #return instrType,operator,operands
         if label:
             operands = list(operands)                       #converting operand to list
@@ -155,7 +169,7 @@ class InstructionParser:
         
         ###added by bhaskar     #if label is there at last then replace with address
         #operands=list(operands)
-        if instrType=='I-TYPE' or instrType=='B-TYPE':
+        if instrType=='I-TYPE' or instrType=='B-TYPE' or instrType=='LDATA-TYPE':
             lastOfoperand=operands[-1]
             #print(type(operands))
             #lastOfoperand=lastOfoperand.split('$',1)
@@ -184,25 +198,369 @@ class InstructionParser:
             return ''
         operand=[]
         if (operator == 'add'):
-            opcode = '001110'
+            opcode = '011111'
             binary = opcode
             operands = list(operands)
             u = Utils()
             for i in operands:
                 i = i.split('$')[1]
                 operand.append(i)
-            
+
+            rt = u.int2bs(operand[0], 5)
+            ra = u.int2bs(operand[1], 5)
+            rb = u.int2bs(operand[2], 16)
+            binary = binary + rt + ra + rb + "0" + "100001010" + "0"
+            return (binary)
+        elif (operator == 'subf'):
+            opcode = '011111'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            for i in operands:
+                i = i.split('$')[1]
+                operand.append(i)
+
             rt = u.int2bs(operand[0], 5)
             ra = u.int2bs(operand[1], 5)
             rb = u.int2bs(operand[2], 5)
-            binary = binary + rt + ra + rb
+            binary = binary + rt + ra + rb + "0" + "000101000" + "0"
+            return (binary)
+        elif (operator == 'and'):
+            opcode = '011111'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            for i in operands:
+                i = i.split('$')[1]
+                operand.append(i)
+
+            ra = u.int2bs(operand[0], 5)
+            rs = u.int2bs(operand[1], 5)
+            rb = u.int2bs(operand[2], 5)
+            binary = binary + rs + ra + rb + "0000011100" + "0"
+            return (binary)
+        elif (operator == 'nand'):
+            opcode = '011111'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            for i in operands:
+                i = i.split('$')[1]
+                operand.append(i)
+
+            ra = u.int2bs(operand[0], 5)
+            rs = u.int2bs(operand[1], 5)
+            rb = u.int2bs(operand[2], 5)
+            binary = binary + rs + ra + rb + "0111011100" + "0"
+            return (binary)
+        elif (operator == 'or'):
+            opcode = '011111'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            for i in operands:
+                i = i.split('$')[1]
+                operand.append(i)
+
+            ra = u.int2bs(operand[0], 5)
+            rs = u.int2bs(operand[1], 5)
+            rb = u.int2bs(operand[2], 5)
+            binary = binary + rs + ra + rb + "0110111100" + "0"
+            return (binary)
+        elif (operator == 'xor'):
+            opcode = '011111'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            for i in operands:
+                i = i.split('$')[1]
+                operand.append(i)
+
+            ra = u.int2bs(operand[0], 5)
+            rs = u.int2bs(operand[1], 5)
+            rb = u.int2bs(operand[2], 5)
+            binary = binary + rs + ra + rb + "0100111100" + "0"
             return(binary)
+        elif (operator == 'sld'):
+            opcode = '011111'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            for i in operands:
+                i = i.split('$')[1]
+                operand.append(i)
+
+            ra = u.int2bs(operand[0], 5)
+            rs = u.int2bs(operand[1], 5)
+            rb = u.int2bs(operand[2], 5)
+            binary = binary + rs + ra + rb + "0111011100" + "0"
+            return (binary)
+        elif (operator == 'srd'):
+            opcode = '011111'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            for i in operands:
+                i = i.split('$')[1]
+                operand.append(i)
+
+            ra = u.int2bs(operand[0], 5)
+            rs = u.int2bs(operand[1], 5)
+            rb = u.int2bs(operand[2], 5)
+            binary = binary + rs + ra + rb + "1000011011" + "0"
+            return (binary)
+        elif (operator == 'srad'):
+            opcode = '011111'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            for i in operands:
+                i = i.split('$')[1]
+                operand.append(i)
+
+            ra = u.int2bs(operand[0], 5)
+            rs = u.int2bs(operand[1], 5)
+            rb = u.int2bs(operand[2], 5)
+            binary = binary + rs + ra + rb + "1100011010" + "0"
+            return (binary)
+
+        elif (operator == 'sradi'):
+            opcode = '011111'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[1].split('$')[1])
+
+            ra = u.int2bs(operand[0], 5)
+            rs = u.int2bs(operand[1], 5)
+            sh = u.int2bs(operand[1], 6)
+            binary = binary + rs + ra + sh[0:5] + "110011101" + sh[5:6] + "0"
+            return (binary)
+        elif (operator == 'addi'):
+            opcode = '001110'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[1].split('$')[1])
+            operand.append(operands[2])
+            rt = u.int2bs(operand[0], 5)
+            ra = u.int2bs(operand[1], 5)
+            si = u.int2bs(operand[2], 16)
+            binary = binary + rt + ra + si
+            return(binary)
+        elif (operator == 'addis'):
+            opcode = '001111'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[1].split('$')[1])
+            operand.append(operands[2])
+            rt = u.int2bs(operand[0], 5)
+            ra = u.int2bs(operand[1], 5)
+            si = u.int2bs(operand[2], 16)
+            binary = binary + rt + ra  + si
+            return(binary)
+        elif (operator == 'andi'):
+            opcode = '011100'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[1].split('$')[1])
+            operand.append(operands[2])
+            ra = u.int2bs(operand[0], 5)
+            rs = u.int2bs(operand[1], 5)
+            si = u.int2bs(operand[2], 16)
+            binary = binary + ra + rs  + si
+            return(binary)
+        elif (operator == 'ori'):
+            opcode = '011000'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[1].split('$')[1])
+            operand.append(operands[2])
+            ra = u.int2bs(operand[0], 5)
+            rs = u.int2bs(operand[1], 5)
+            si = u.int2bs(operand[2], 16)
+            binary = binary + ra + rs  + si
+            return(binary)
+        elif (operator == 'xori'):
+            opcode = '011010'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[1].split('$')[1])
+            operand.append(operands[2])
+            ra = u.int2bs(operand[0], 5)
+            rs = u.int2bs(operand[1], 5)
+            si = u.int2bs(operand[2], 16)
+            binary = binary + ra + rs  + si
+            return(binary)
+        elif (operator == 'lwz'):
+            opcode = '100000'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[2].split('$')[1])
+            operand.append(operands[1])
+            rt = u.int2bs(operand[0], 5)
+            ra = u.int2bs(operand[1], 5)
+            si = u.int2bs(operand[2], 16)
+            binary = binary + rt + ra + si
+            return(binary)
+        elif (operator == 'stw'):
+            opcode = '100100'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[2].split('$')[1])
+            operand.append(operands[1])
+            rs = u.int2bs(operand[0], 5)
+            ra = u.int2bs(operand[1], 5)
+            si = u.int2bs(operand[2], 16)
+            binary = binary + rs + ra + si
+            return(binary)
+        elif (operator == 'stwu'):
+            opcode = '100101'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[2].split('$')[1])
+            operand.append(operands[1])
+            rs = u.int2bs(operand[0], 5)
+            ra = u.int2bs(operand[1], 5)
+            si = u.int2bs(operand[2], 16)
+            binary = binary + rs + ra + si
+            return(binary)
+        elif (operator == 'lhz'):
+            opcode = '101000'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[2].split('$')[1])
+            operand.append(operands[1])
+            rt = u.int2bs(operand[0], 5)
+            ra = u.int2bs(operand[1], 5)
+            si = u.int2bs(operand[2], 16)
+            binary = binary + rt + ra + si
+            return(binary)
+        elif (operator == 'lha'):
+            opcode = '101010'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[2].split('$')[1])
+            operand.append(operands[1])
+            rt = u.int2bs(operand[0], 5)
+            ra = u.int2bs(operand[1], 5)
+            si = u.int2bs(operand[2], 16)
+            binary = binary + rt + ra + si
+            return(binary)
+        elif (operator == 'sth'):
+            opcode = '101100'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[2].split('$')[1])
+            operand.append(operands[1])
+            rs = u.int2bs(operand[0], 5)
+            ra = u.int2bs(operand[1], 5)
+            si = u.int2bs(operand[2], 16)
+            binary = binary + rs + ra + si
+            return(binary)
+        elif (operator == 'lbz'):
+            opcode = '100010'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[2].split('$')[1])
+            operand.append(operands[1])
+            rt = u.int2bs(operand[0], 5)
+            ra = u.int2bs(operand[1], 5)
+            si = u.int2bs(operand[2], 16)
+            binary = binary + rt + ra + si
+            return(binary)
+        elif (operator == 'stb'):
+            opcode = '100110'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[2].split('$')[1])
+            operand.append(operands[1])
+            rs = u.int2bs(operand[0], 5)
+            ra = u.int2bs(operand[1], 5)
+            si = u.int2bs(operand[2], 16)
+            binary = binary + rs + ra + si
+            return(binary)
+        elif (operator == 'ld'):
+            opcode = '111010'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[2].split('$')[1])
+            operand.append(operands[1])
+            rt = u.int2bs(operand[0], 5)
+            ra = u.int2bs(operand[1], 5)
+            si = u.int2bs(operand[2], 14)
+            binary = binary + rt + ra + si  + "00"
+            return(binary)
+        elif (operator == 'std'):
+            opcode = '111110'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[2].split('$')[1])
+            operand.append(operands[1])
+            rt = u.int2bs(operand[0], 5)
+            ra = u.int2bs(operand[1], 5)
+            si = u.int2bs(operand[2], 14)
+            binary = binary + rt + ra + si  + "00"
+            return(binary)
+        elif (operator == 'bc'):
+            opcode = '010011'
+            binary = opcode
+            operands = list(operands)
+            u = Utils()
+            operand.append(operands[0].split('$')[1])
+            operand.append(operands[1].split('$')[1])
+            operand.append(operands[2])
+            bo = u.int2bs(operand[0], 5)
+            bi = u.int2bs(operand[1], 5)
+            bd = u.int2bs(operand[2], 14)
+            binary = binary + bo + bi + bd  + "00"
+            return(binary)
+        elif (operator == 'b'):
+            opcode = '010010'
+            binary = opcode
+            operands = list(operands)
+            operand=str(operands[0])
+            u = Utils()
+            li = u.int2bs(operand, 24)
+            binary = binary + li + '00'
+            return (binary)
+        elif (operator == 'ba'):
+            opcode = '010010'
+            binary = opcode
+            operands = list(operands)
+            operand = str(operands[0])
+            u = Utils()
+            li = u.int2bs(operand, 24)
+            binary = binary + li + '10'
+            return (binary)
         ###added by bhaskar
-'''
-if __name__ == '__main__':
-    # Test
-    ip = InstructionParser()
-    print ip.convert('add $6 $2 $4')
-    print ip.convert('addi $2 $0 2', format='binary')
-    print hex(int(ip.convert('addi $2 $0 2', format='binary'), 2))
-'''

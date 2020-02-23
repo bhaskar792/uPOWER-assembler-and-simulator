@@ -63,21 +63,24 @@ class disassembler(object):
         return dataMap,textMap,fullMap
 
     def simulate(self,lines,dataMap,textMap,fullMap):
-        for sline in lines:
+        pc = 10000000
+        while (pc <= (len(textMap) - 1) * 4 + 10000000):
+
+            sline = textMap[pc]
             opcode = sline[0:6]
 
             print(opcode)
             if opcode == '011111':
+
                 operand = []
                 register = []
-                x = 6
-                for i in range(3):
+                for x in range(6, 21, 5):
                     operand.append(sline[x:x + 5])
-                    x += 5
-
+                # print(operand)
                 for i in range(3):
                     register.append(int(operand[i], 2))
-
+                print(register)
+                # print(sline[22:31])
                 if sline[22:31] == '100001010':  # add
                     REG[register[0]] = REG[register[1]] + REG[register[2]]
                     print('add')
@@ -93,10 +96,8 @@ class disassembler(object):
             elif opcode == '001110':  # addi
                 operand = []
                 register = []
-                x = 6
-                for i in range(2):
+                for x in range(6, 16, 5):
                     operand.append(sline[x:x + 5])
-                    x += 5
                 # print(operand)
                 for i in range(2):
                     register.append(int(operand[i], 2))
@@ -104,11 +105,52 @@ class disassembler(object):
                 # print(sline[16:])
                 d = int(sline[16:], 2)
                 REG[register[0]] = REG[register[1]] + d
-            #elif opcode == '111010':
+            # elif opcode == '111010' :
+            elif opcode == '010011':  # bca
 
-        print(REG)
-        for i in range(32):
-            REG[i] = 0
+                operand = []
+                register = []
+                for x in range(6, 16, 5):
+                    operand.append(sline[x:x + 5])
+                for i in range(2):
+                    register.append(int(operand[i], 2))
+                if (REG[register[0]] > REG[register[1]]):
+                    lineNo = int(sline[16:30], 2)
+                    pc = lineNo * 4 + 10000000
+                    continue
+            elif opcode == '000111':  # ldata opcode
+                operand = []
+                register = []
+                for x in range(6, 11, 5):
+                    operand.append(sline[x:x + 5])
+                lineNo = int(sline[11:], 2)
+                register.append(int(operand[0], 2))
+                REG[register[0]] = int(dataMap[lineNo * 4 + 400000], 2)
+            elif opcode == '111010':  # ld opcode
+                operand = []
+                register = []
+                for x in range(6, 16, 5):
+                    operand.append(sline[x:x + 5])
+                register.append(int(operand[0], 2))
+                register.append(int(operand[1], 2))
+                offsetLineNo = int(sline[16:30], 2)
+                regLineNo = REG[register[1]]
+                lineNo = offsetLineNo + regLineNo
+                REG[register[0]] = int(dataMap[lineNo * 4 + 400000])
+            elif opcode == '111110':  # store opcode
+                operand = []
+                register = []
+                for x in range(6, 16, 5):
+                    operand.append(sline[x:x + 5])
+                register.append(int(operand[0], 2))
+                register.append(int(operand[1], 2))
+                offsetLineNo = int(sline[16:30], 2)
+                regLineNo = REG[register[1]]
+                lineNo = offsetLineNo + regLineNo
+                dataMap[lineNo * 4 + 400000] = bin(REG[register[0]])
+
+            print('pc is ' + str(pc))
+            pc += 4
 
     def main(self):
         inlines = self.mergeInputFiles()  # get all the lines from input in list
