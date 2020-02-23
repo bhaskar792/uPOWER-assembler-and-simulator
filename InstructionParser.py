@@ -198,3 +198,11 @@ class InstructionParser:
             binary = binary + rt + ra + rb
             return(binary)
         ###added by bhaskar
+'''
+if __name__ == '__main__':
+    # Test
+    ip = InstructionParser()
+    print ip.convert('add $6 $2 $4')
+    print ip.convert('addi $2 $0 2', format='binary')
+    print hex(int(ip.convert('addi $2 $0 2', format='binary'), 2))
+'''

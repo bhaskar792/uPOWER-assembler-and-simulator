@@ -1,3 +1,11 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# =+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+# MIPS Assembly to Hex Converter. .................................................... ........     |
+# =+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+# Akshay Kashyap, Union College, Winter 2017. ........................................ ............ |
+# Built using code by Prof. John Rieffel, Union College, for CSC-270: Compiter Organization. .... |
+# =+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 
 import sys
 import getopt
@@ -31,14 +39,14 @@ class Assembler(object):
 
         return outlines  # return all the lines of assembly file
 
-    def buildLabelsMap(self, lines):
+    def buildLabelsMap(self, lines,count):
         labelsMap = {}
-        count = 0
+
         for (lineNo, line) in enumerate(lines):
             split = line.split(':', 1)
             if len(split) > 1:
                 label = split[0]
-                labelsMap[label] = lineNo - count  # because every at place of label line is removed to everytime decrease by 1
+                labelsMap[label] = lineNo - count  # because everytime at place of label line is removed to everytime decrease by 1
 
         return labelsMap
 
@@ -53,6 +61,14 @@ class Assembler(object):
 
         return outlines  # return all the lines of assembly file
 
+    def buildtextmap(self,lines):
+        textmap = {}
+        for i in lines:
+            if (len(list(filter(None, i.split(':')))) > 1):
+                textmap[list(filter(None, i.split(':')))[0]] = list(filter(None, i.split(':')))[1].strip()
+
+        return textmap
+
     def AssemblyToHex(self):
         '''given an ascii assembly file , read it in line by line and convert each line of assembly to machine code
 ........then save that machinecode to an outputfile'''
@@ -64,7 +80,10 @@ class Assembler(object):
                      self.stripComments(line.rstrip()), inlines))  # get rid of \n whitespace at end of line #return either proper lines or empty item
 
         lines = list(filter(None, lines))
-        labelsMap = self.buildLabelsMap(lines)  # build labelsmap like {'bro': 0, 'there': 2, 'hey': 3} and line numbers are correct
+        textmap = self.buildtextmap(lines)  # for text section
+        labelsMap = self.buildLabelsMap(lines,len(textmap)-1)  # build labelsmap like {'bro': 0, 'there': 2, 'hey': 3} and line numbers are correct
+
+        labelsMap.update(textmap)
         parser = InstructionParser(labelsMap=labelsMap)
         
         instrlines = []
@@ -79,11 +98,14 @@ class Assembler(object):
         
         outlines = map(lambda line: parser.convert(line), instrlines)
         with open(self.outfilename, 'w') as of:
+            for k, v in textmap.items():
+                of.write(str(k) + ':' + str(v) + '\n')
 
             for outline in outlines:
                 of.write(outline)
                 of.write('\n')
             of.close()
+
 
 if __name__ == '__main__':
     print ('Number of arguments:', len(sys.argv), 'arguments.')

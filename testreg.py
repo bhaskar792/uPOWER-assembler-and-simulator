@@ -1,6 +1,7 @@
 infilename='test.txt'
 from InstructionParser import  InstructionParser
 import re
+import simple_pickle as pickle
 from Utils import Utils
 outlines = []
 print('#########################################')
@@ -42,16 +43,27 @@ def buildLabelsMap(lines):
             count=count+1
 
     return labelsMap
+
+
 print('**********************************')
 #lines = list(map(lambda line: stripComments(line.rstrip()), inlines))
 lines = list(map(lambda line: stripComments(line.rstrip()), inlines))  #get rid of \n whitespace at end of line #return either proper lines or empty item
 
 print(lines)
 lines=list(filter(None,lines))
+
 labelsMap = buildLabelsMap(lines)
 
+
+
+
+
+#text = list(filter(None,lines[0].split(':')))
+#textmap[text[0]]=text[1].strip()
+#print(textmap)
+#print(list(filter(None,lines[0].split(':'))))
 #lines=list(lines)
-print(lines)
+#print(len())
 print('for loop')
 instrlines=[]
 for i in lines:
@@ -65,12 +77,15 @@ print(list(instrlines))
 print(instrlines)
 
 print(labelsMap)
+
+print(labelsMap)
 parser=InstructionParser(labelsMap=labelsMap)
-instr='sc'
-#instr='j 3'
+#instr='sc'
+instr='add $1 $2 $3'
 
 outlines=list(map(lambda line: parser.convert(line), instrlines))
 print(outlines)
+
 outfilename='out.txt'
 with open(outfilename, 'w') as of:
     of.write('v2.0 raw\n')
@@ -109,4 +124,26 @@ else:
 
         operand[-1] = str(labelsMap[label])
 
-operand=tuple(operand)
+
+def buildtextmap(lines):
+    textmap={}
+    for i in lines:
+        if (len(list(filter(None, i.split(':')))) > 1):
+            textmap[list(filter(None, i.split(':')))[0]] = list(filter(None, i.split(':')))[1].strip()
+
+    return textmap
+
+textmap=buildtextmap(lines)
+fout = "out.txt"
+fo = open(fout, "w")
+
+for k, v in textmap.items():
+    fo.write(str(k) + ':'+ str(v) + '\n')
+for outline in outlines:
+        fo.write(outline)
+        fo.write("\n")
+
+fo.close()
+print(len(textmap))
+labelsMap.update(textmap)
+print(labelsMap)
