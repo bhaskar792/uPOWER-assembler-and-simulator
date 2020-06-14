@@ -1,4 +1,5 @@
 import sys
+from Utils import Utils
 import getopt
 
 from InstructionParser import InstructionParser
@@ -22,11 +23,11 @@ class disassembler(object):
     def mergeInputFiles(self):  # given list of all input lines
         outlines = []
 
-        for filename in self.infilenames:
-            with open(filename) as f:
-                outlines += f.readlines()
+        filename = self.infilenames
+        with open(filename) as f:
+            outlines += f.readlines()
 
-            f.close()
+        f.close()
 
         return outlines  # return all the lines of assembly file
     def buildTextMap(self,lines):
@@ -62,14 +63,59 @@ class disassembler(object):
         fullMap = {**dataMap, **textMap}
         return dataMap,textMap,fullMap
 
-    def simulate(self,lines,dataMap,textMap,fullMap):
+    def simulate(self, lines, dataMap, textMap, fullMap):
         pc = 10000000
+        u = Utils()
+        nPc = -1
+        breakPointSet = False
         while (pc <= (len(textMap) - 1) * 4 + 10000000):
+            if (nPc == pc):
+                breakPointSet = False
+            if (not breakPointSet):
+                while (True):
+                    inpt = input()
+                    if (inpt == 'text'):
+                        print(textMap)
+                    elif (inpt == 'data'):
+                        print(dataMap)
+                    elif (inpt == 'reg'):
+                        print(REG)
+                    elif (inpt == 'pc'):
+                        print(pc)
+                    elif (inpt == 'stepi'):
+                        break
+                    elif (inpt == 'jump'):
+                        print('please enter new pc with considering start of the section as 0 ex 4 or 8 or 12 or 40')
+                        pc = int(input())
+                        pc = pc + 10000000
+                        continue
+                    elif (inpt == 'break'):
+                        print('please enter pc with considering start of the section as 0 ex 4 or 8 or 12 or 40')
+                        breakPointSet = True
+                        nPc = int(input())
+                        nPc = nPc + 10000000
+                        break
+                    else:
+                        print('Usage')
+                        print('text: print text section')
+                        print('data: print data section')
+                        print('reg: print value of all the registers')
+                        print('pc: current value of program counter')
+                        print('stepi: execute next instruction')
+                        print(
+                            'jump: Jump to a specific instruction. Type jump for usage then enter nPc according to given usage')
+                        print(
+                            'break: continue to a specfic instruction. Type break for usage then enter nPc according to given usage')
+                        print('designed by: ')
+                        print('Bhaskar Kataria (181CO213)')
+                        print('Ketan Bhujange (181CO227)')
+                        print('Manas Trivedi (181CO231)')
+                        print('Omanshu Mahawar (181CO237)')
 
             sline = textMap[pc]
+
             opcode = sline[0:6]
 
-            print(opcode)
             if opcode == '011111':
 
                 operand = []
@@ -79,7 +125,7 @@ class disassembler(object):
                 # print(operand)
                 for i in range(3):
                     register.append(int(operand[i], 2))
-                print(register)
+                # print(register)
                 # print(sline[22:31])
                 if sline[22:31] == '100001010':  # add
                     REG[register[0]] = REG[register[1]] + REG[register[2]]
@@ -87,13 +133,14 @@ class disassembler(object):
                 elif sline[22:31] == '000101000':  # subf
                     REG[register[0]] = REG[register[2]] - REG[register[1]]
                     print('sub')
-                elif sline[21:30] == '0000011100':  # and
+                elif sline[21:30] == '000001110':  # and
                     REG[register[1]] = REG[register[0]] & REG[register[2]]
                     print('and')
-                elif sline[21:30] == '0110111100':  # or
+                elif sline[21:30] == '011011110':  # or
                     REG[register[1]] = REG[register[0]] | REG[register[2]]
                     print('or')
             elif opcode == '001110':  # addi
+                print('addi')
                 operand = []
                 register = []
                 for x in range(6, 16, 5):
@@ -107,7 +154,7 @@ class disassembler(object):
                 REG[register[0]] = REG[register[1]] + d
             # elif opcode == '111010' :
             elif opcode == '010011':  # bca
-
+                print('bca')
                 operand = []
                 register = []
                 for x in range(6, 16, 5):
@@ -117,16 +164,10 @@ class disassembler(object):
                 if (REG[register[0]] > REG[register[1]]):
                     lineNo = int(sline[16:30], 2)
                     pc = lineNo * 4 + 10000000
+                    print(lineNo)
                     continue
-            elif opcode == '000111':  # ldata opcode
-                operand = []
-                register = []
-                for x in range(6, 11, 5):
-                    operand.append(sline[x:x + 5])
-                lineNo = int(sline[11:], 2)
-                register.append(int(operand[0], 2))
-                REG[register[0]] = int(dataMap[lineNo * 4 + 400000], 2)
             elif opcode == '111010':  # ld opcode
+                print('ld')
                 operand = []
                 register = []
                 for x in range(6, 16, 5):
@@ -136,8 +177,9 @@ class disassembler(object):
                 offsetLineNo = int(sline[16:30], 2)
                 regLineNo = REG[register[1]]
                 lineNo = offsetLineNo + regLineNo
-                REG[register[0]] = int(dataMap[lineNo * 4 + 400000])
-            elif opcode == '111110':  # store opcode
+                REG[register[0]] = int(dataMap[lineNo * 4 + 400000], 2)
+            elif opcode == '111110':  # store opcode (std)
+                print('std')
                 operand = []
                 register = []
                 for x in range(6, 16, 5):
@@ -147,17 +189,20 @@ class disassembler(object):
                 offsetLineNo = int(sline[16:30], 2)
                 regLineNo = REG[register[1]]
                 lineNo = offsetLineNo + regLineNo
-                dataMap[lineNo * 4 + 400000] = bin(REG[register[0]])
+                binary = u.int2bs(REG[register[0]], 32)
+                dataMap[lineNo * 4 + 400000] = binary
 
             print('pc is ' + str(pc))
             pc += 4
-
+            print('REG')
+            print(REG)
     def main(self):
-        inlines = self.mergeInputFiles()  # get all the lines from input in list
-        outlines = []
+        inlines = self.mergeInputFiles()
         lines = list(map(lambda line: self.stripComments(line.rstrip()),inlines))  # get rid of \n whitespace at end of line #return either proper lines or empty item
         lines = list(filter(None, lines))
-        dataMap, textMap, fullMap=self.map(lines)
+        dataMap, textMap, fullMap=self.maps(lines)
+        print('dataMap')
+        print (dataMap)
         self.simulate(lines,dataMap,textMap,fullMap)
 
 
@@ -170,14 +215,12 @@ if __name__ == '__main__':
     print('Argument List:', str(sys.argv))
 
 
-    if len(sys.argv) < 4 or '-i' not in sys.argv or '-o' \
-            not in sys.argv:
+    if len(sys.argv) < 2 or '-i' not in sys.argv :
         print(
-            'Usage: python Assembler.py -i <inputfile.asm>[ <inputfile2.asm> <inputfile3.asm> ...] -o <outputfile.hex>')
+            'Usage: python disassembler.py -i <inputfile.txt>')
         sys.exit(2)
 
-    inputfiles = sys.argv[sys.argv.index('-i') + 1:sys.argv.index('-o')]
-    outputfile = sys.argv[sys.argv.index('-o') + 1]
+    inputfiles = sys.argv[sys.argv.index('-i') + 1]
 
     assembler = disassembler(inputfiles)
     assembler.main()

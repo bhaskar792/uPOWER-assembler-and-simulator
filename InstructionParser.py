@@ -146,13 +146,14 @@ class InstructionParser:
             return '', '', None
 
         operator = instr.split(' ')[0]         #splitting by space operator=add in add $1 $2 $3
-
+        #print (operator)
         instrType = self.instrLookup.type(operator)     #return a type(R-TYPE) corresponding to particular instruction
 
-       # return instrType,operator,instr.split(' ')[1:]
-        if not instrType:                               #if intruction not available
+        #return instrType,operator,instr.split(' ')[1:]
+        if not instrType:
+            print ("here")#if intruction not available
             return '', '', None 
-
+       # print ("not here")
         instrObj = self.instrObjMap[instrType]()           #instrObj became an object of RTypeInstruction(class above)
 
         operator, operands = instrObj.parseInstr(instr)     #operator=add and operand=$1 $2 $3
@@ -208,7 +209,7 @@ class InstructionParser:
 
             rt = u.int2bs(operand[0], 5)
             ra = u.int2bs(operand[1], 5)
-            rb = u.int2bs(operand[2], 16)
+            rb = u.int2bs(operand[2], 5)
             binary = binary + rt + ra + rb + "0" + "100001010" + "0"
             return (binary)
         elif (operator == 'subf'):
@@ -532,7 +533,7 @@ class InstructionParser:
             si = u.int2bs(operand[2], 14)
             binary = binary + rt + ra + si  + "00"
             return(binary)
-        elif (operator == 'bc'):
+        elif (operator == 'bca'):
             opcode = '010011'
             binary = opcode
             operands = list(operands)

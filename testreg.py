@@ -112,52 +112,52 @@ print(operator)
 print(operands)
 
 
-
-#lines = list(filter(None, lines))
-#print(str(lines))
-
-groups = ('add', '$1', '$2', 'hey')
-#print(type(groups))
-operand=groups[1:]
-#print(operand)
-operand=list(operand)
-lastOfoperand=operand[-1]
-lastOfoperand=lastOfoperand.split('$',1)
-
-if(len(lastOfoperand)>1):
-    pass
-else:
-    label=str(operand[-1])
-    if  label not in labelsMap:
-        operand[-1] = None
-        print('not there')
-    else:
-
-        operand[-1] = str(labelsMap[label])
-
-
-def buildtextmap(lines):
-    textmap={}
-    for i in lines:
-        if (len(list(filter(None, i.split(':')))) > 1):
-            textmap[list(filter(None, i.split(':')))[0]] = bin(int(list(filter(None, i.split(':')))[1].strip(),16))[2:]
-
-    return textmap
-
-textmap=buildtextmap(lines)
-fout = "out.txt"
-fo = open(fout, "w")
-
-for k, v in textmap.items():
-    fo.write(str(k) + ':'+ str(v) + '\n')
-for outline in outlines:
-        fo.write(outline)
-        fo.write("\n")
-
-fo.close()
-print(len(textmap))
-labelsMap.update(textmap)
-print(labelsMap)
-
-
-print(bin(int(textmap['bro'],16))[2:])
+#
+# #lines = list(filter(None, lines))
+# #print(str(lines))
+#
+# groups = ('add', '$1', '$2', 'hey')
+# #print(type(groups))
+# operand=groups[1:]
+# #print(operand)
+# operand=list(operand)
+# lastOfoperand=operand[-1]
+# lastOfoperand=lastOfoperand.split('$',1)
+#
+# if(len(lastOfoperand)>1):
+#     pass
+# else:
+#     label=str(operand[-1])
+#     if  label not in labelsMap:
+#         operand[-1] = None
+#         print('not there')
+#     else:
+#
+#         operand[-1] = str(labelsMap[label])
+#
+#
+# def buildtextmap(lines):
+#     textmap={}
+#     for i in lines:
+#         if (len(list(filter(None, i.split(':')))) > 1):
+#             textmap[list(filter(None, i.split(':')))[0]] = bin(int(list(filter(None, i.split(':')))[1].strip(),16))[2:]
+#
+#     return textmap
+#
+# textmap=buildtextmap(lines)
+# fout = "out.txt"
+# fo = open(fout, "w")
+#
+# for k, v in textmap.items():
+#     fo.write(str(k) + ':'+ str(v) + '\n')
+# for outline in outlines:
+#         fo.write(outline)
+#         fo.write("\n")
+#
+# fo.close()
+# print(len(textmap))
+# labelsMap.update(textmap)
+# print(labelsMap)
+#
+#
+# print(bin(int(textmap['bro'],16))[2:])

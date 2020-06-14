@@ -50,6 +50,9 @@ class InstructionLookup:
             },
             'SC-TYPE': {
                 'sc': 32
+            },
+            'LDATA-TYPE':{
+                'ldata': 33
             }
         }
 

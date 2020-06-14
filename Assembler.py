@@ -1,11 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-# =+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
-# MIPS Assembly to Hex Converter. .................................................... ........     |
-# =+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
-# Akshay Kashyap, Union College, Winter 2017. ........................................ ............ |
-# Built using code by Prof. John Rieffel, Union College, for CSC-270: Compiter Organization. .... |
-# =+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 
 import sys
 import getopt
@@ -31,38 +23,35 @@ class Assembler(object):
     def mergeInputFiles(self):  # given list of all input lines
         outlines = []
 
-        for filename in self.infilenames:
-            with open(filename) as f:
-                outlines += f.readlines()
+        filename = self.infilenames
+        with open(filename) as f:
+            outlines += f.readlines()
 
-            f.close()
-
+        f.close()
         return outlines  # return all the lines of assembly file
 
     def buildLabelsMap(self,lines):
         labelsMap = {}
+        textmap = {}
+        for i in lines:
+            if (len(list(filter(None, i.split(':')))) > 1):
+                textmap[list(filter(None, i.split(':')))[0]] = bin(
+                    int(list(filter(None, i.split(':')))[1].strip(), 16))[2:]
+        textMapLen = len(textmap)
         count = 0
         for (lineNo, line) in enumerate(lines):
             split = line.split(':', 1)
             if len(split) > 1:
-
                 label = split[0]
                 labelsMap[
-                    label] = lineNo - count  # because everytime at place of label line is removed to everytime decrease by 1
+                    label] = lineNo - count - textMapLen  # because everytime at place of label line is removed to everytime decrease by 1
                 if (len(list(filter(None, split))) == 1):
                     count = count + 1
+        for key in list(labelsMap):
+            if labelsMap[key] < 0:
+                del labelsMap[key]
+        # labelsMap = labelsMap - textmap
         return labelsMap
-
-    def mergeInputFiles(self):  # given list of all input lines
-        outlines = []
-
-        for filename in self.infilenames:
-            with open(filename) as f:
-                outlines += f.readlines()
-
-            f.close()
-
-        return outlines  # return all the lines of assembly file
 
     def buildtextmap(self,lines):
         textmap = {}
@@ -115,21 +104,13 @@ if __name__ == '__main__':
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
 
-    # try:
-    # ....opts, args = getopt.getopt(sys.argv[1:], "hi:o:", ["ifile=","ofile="])
-    # except getopt.GetoptError:
-    # ....print 'Usage: python Assembler.py -i <inputfile.asm>[ <inputfile2.asm> <inputfile3.asm> ...] -o <outputfile.hex>'
-    # ....sys.exit(2)
-    #
-    # inputfiles = map(lambda t: t[1], filter(lambda (opt, arg): opt == '-i', opts))
-    # outputfile = map(lambda t: t[1], filter(lambda (opt, arg): opt == '-o', opts))
 
     if len(sys.argv) < 4 or '-i' not in sys.argv or '-o' \
         not in sys.argv:
-        print('Usage: python Assembler.py -i <inputfile.asm>[ <inputfile2.asm> <inputfile3.asm> ...] -o <outputfile.hex>')
+        print('Usage: python Assembler.py -i <inputfile.asm> -o <outputfile.hex>')
         sys.exit(2)
 
-    inputfiles = sys.argv[sys.argv.index('-i') + 1:sys.argv.index('-o')]
+    inputfiles = sys.argv[sys.argv.index('-i') + 1]
     outputfile = sys.argv[sys.argv.index('-o') + 1]
 
     assembler = Assembler(inputfiles, outputfile)
